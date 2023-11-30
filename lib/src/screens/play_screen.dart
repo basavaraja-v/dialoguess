@@ -236,10 +236,10 @@ class _PlayScreenState extends State<PlayScreen> {
         // Image container
         VxBox(
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(30),
             child: Image.network(
               dialogue.imageUrl,
-              fit: BoxFit.cover,
+              fit: BoxFit.fill,
               errorBuilder: (context, error, stackTrace) {
                 return Icon(Icons.error_outline,
                     size: 50, color: Colors.white); // Handle image load error
@@ -259,8 +259,8 @@ class _PlayScreenState extends State<PlayScreen> {
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             childAspectRatio: 3,
-            crossAxisSpacing: 10, // Add space between columns
-            mainAxisSpacing: 10, // Add space between rows
+            crossAxisSpacing: 0, // Add space between columns
+            mainAxisSpacing: 8, // Add space between rows
           ),
           itemCount: dialogue.options.length,
           itemBuilder: (context, index) {
@@ -270,7 +270,7 @@ class _PlayScreenState extends State<PlayScreen> {
 
             return Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(30.0),
+                borderRadius: BorderRadius.circular(20.0),
                 color: isSelected
                     ? isCorrect
                         ? Vx.green500
@@ -291,7 +291,7 @@ class _PlayScreenState extends State<PlayScreen> {
                   primary: Colors.transparent,
                   onPrimary: isSelected ? Colors.white : Colors.black,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30.0),
+                    borderRadius: BorderRadius.circular(20.0),
                   ),
                   textStyle: GoogleFonts.bitter(fontSize: 18),
                   elevation:
@@ -305,7 +305,7 @@ class _PlayScreenState extends State<PlayScreen> {
                       color: isSelected ? Colors.white : Colors.black),
                 ),
               ),
-            ).px4(); // Add padding to create space around each grid item
+            ).px4().py2(); // Add padding to create space around each grid item
           },
         ).expand(),
       ]),

@@ -17,15 +17,12 @@ class CustomPlayButton extends StatelessWidget {
         .alignCenter
         .withRounded(value: 50) // Rounded corners
         .neumorphic(
-            color: const Color.fromARGB(
-                255, 199, 21, 133), // Base color for neumorphism
+            color: Colors.blueGrey[900], // Updated color for better integration
             elevation: 5.0,
             curve: VxCurve.flat // Flat design
             )
-        .linearGradient([Colors.green, Colors.purpleAccent])
-        .shadow2xl // Apply a large shadow
-        .width(150) // Specify the width of the button
-        .height(60) // Specify the height of the button
+        .width(MediaQuery.of(context).size.width * 0.5) // Responsive width
+        .height(60) // Fixed height
         .make() // Make the VxBox
         .onInkTap(onPressed); // Apply the tap callback
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:velocity_x/velocity_x.dart';
 
 class GradientText extends StatelessWidget {
   final String text;
@@ -18,14 +19,11 @@ class GradientText extends StatelessWidget {
       shaderCallback: (bounds) => gradient.createShader(
         Rect.fromLTWH(0, 0, bounds.width, bounds.height),
       ),
-      child: Text(
-        text,
-        style: GoogleFonts.pressStart2p(
-          fontSize: fontSize,
-          color: Colors
-              .white, // This color must be white for the ShaderMask to work
-        ),
-      ),
+      child: text.text
+          .textStyle(GoogleFonts.pressStart2p(
+              fontSize: fontSize)) // Apply the font size from the parameter
+          .center // Center align text
+          .make(), // Make the text widget
     );
   }
 }
