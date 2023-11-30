@@ -17,11 +17,12 @@ class CustomPlayButton extends StatelessWidget {
         .alignCenter
         .withRounded(value: 50) // Rounded corners
         .neumorphic(
-            color: Colors.orangeAccent, // Base color for neumorphism
+            color: const Color.fromARGB(
+                255, 199, 21, 133), // Base color for neumorphism
             elevation: 5.0,
             curve: VxCurve.flat // Flat design
             )
-        .linearGradient([Colors.orangeAccent, Colors.purpleAccent])
+        .linearGradient([Colors.green, Colors.purpleAccent])
         .shadow2xl // Apply a large shadow
         .width(150) // Specify the width of the button
         .height(60) // Specify the height of the button
