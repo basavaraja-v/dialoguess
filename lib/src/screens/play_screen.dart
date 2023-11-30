@@ -51,12 +51,15 @@ class _PlayScreenState extends State<PlayScreen> {
       _showCongratulationsPopup();
     } else {
       // Implement failure animation or effect
+      _showWrongAnswerPopup(dialogue);
     }
   }
 
   void _showCongratulationsPopup() {
     showDialog(
       context: context,
+      barrierDismissible:
+          false, // Prevents dismissing the dialog by tapping outside of it
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text("Congratulations!",
@@ -66,8 +69,6 @@ class _PlayScreenState extends State<PlayScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              // Lottie.asset('assets/trophy_blast.json', width: 150, height: 150),
-              // Text("You've completed the level!"),
               Image.asset("assets/images/trophy.png"),
             ],
           ),
@@ -77,6 +78,55 @@ class _PlayScreenState extends State<PlayScreen> {
                   style: GoogleFonts.bitter(fontSize: 20, color: Colors.white)),
               style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blueGrey[900]),
+              onPressed: () {
+                Navigator.of(context).pop(
+                    'next'); // Close the dialog and pass back 'next' as the result.
+              },
+            ).centered(),
+          ],
+        );
+      },
+    ).then((result) {
+      // Since barrierDismissible is false, result will not be null when dismissed by tapping outside
+      // 'next' will be passed back when the "Next" button is pressed.
+      if (result == 'next' || result == null) {
+        _loadNextLevel(); // Load the next level
+      }
+    });
+  }
+
+  void _showWrongAnswerPopup(Dialogue dialogue) {
+    showDialog(
+      context: context,
+      barrierDismissible:
+          false, // Prevents dismissing the dialog by tapping outside of it
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            "Oops! Wrong Answer",
+            style:
+                GoogleFonts.bitter(fontSize: 20, color: Colors.blueGrey[900]),
+          ).centered(),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(
+                "The correct answer was: ${dialogue.options[dialogue.rightOptionIndex]}",
+                style: GoogleFonts.bitter(fontSize: 18),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 20), // Adds space between text and image
+            ],
+          ),
+          actions: <Widget>[
+            ElevatedButton(
+              child: Text(
+                "OK",
+                style: GoogleFonts.bitter(fontSize: 20, color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueGrey[900],
+              ),
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
                 _loadNextLevel(); // Load the next level
@@ -93,6 +143,7 @@ class _PlayScreenState extends State<PlayScreen> {
     _currentLevel++;
     _dialogueFuture = _fetchDialogue(_currentLevel);
     _selectedOptionIndex = null; // Reset the selected option
+    await _dialogueService.incrementLevel();
     setState(() {});
   }
 
