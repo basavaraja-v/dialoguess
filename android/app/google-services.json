@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "292418326021",
+    "project_id": "fluttersociallogin-ff63d",
+    "storage_bucket": "fluttersociallogin-ff63d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:292418326021:android:8391cb091ab6770352966c",
+        "android_client_info": {
+          "package_name": "com.heyidb.dialoguess"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "292418326021-4l5tokl3pk9rcoe6aob4omd0c1hn06v9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBgPBD4hIbXCQ4ci6ipc2iwuyPUTc6lpIY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "292418326021-4l5tokl3pk9rcoe6aob4omd0c1hn06v9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
