@@ -21,6 +21,7 @@ class _PlayScreenState extends State<PlayScreen> {
   int _currentLevel = 1;
   int _rewardPoints = 0;
   int? _selectedOptionIndex;
+  bool _isImageLoaded = false;
 
   @override
   void initState() {
@@ -147,6 +148,7 @@ class _PlayScreenState extends State<PlayScreen> {
     _dialogueFuture = _fetchDialogue(_currentLevel);
     _selectedOptionIndex = null; // Reset the selected option
     await _dialogueService.incrementLevel();
+    _isImageLoaded = false;
     setState(() {});
   }
 
@@ -232,82 +234,95 @@ class _PlayScreenState extends State<PlayScreen> {
         ),
       ),
       child: VStack([
-        // Image container
-        VxBox(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(30),
-            child: CachedNetworkImage(
-              imageUrl: dialogue.imageUrl,
-              fit: BoxFit.fill,
-              placeholder: (context, url) =>
-                  Center(child: CircularProgressIndicator()),
-              errorWidget: (context, url, error) =>
-                  Icon(Icons.error_outline, size: 50, color: Colors.white),
-            ),
-          ),
-        )
-            .shadowXl
-            .color(Colors.transparent)
-            .height(context.percentHeight * 60)
-            .make()
-            .p16(),
-        // Options grid
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 3,
-            crossAxisSpacing: 0, // Add space between columns
-            mainAxisSpacing: 8, // Add space between rows
-          ),
-          itemCount: dialogue.options.length,
-          itemBuilder: (context, index) {
-            final option = dialogue.options[index];
-            final isSelected = _selectedOptionIndex == index;
-            final isCorrect = dialogue.rightOptionIndex == index;
-
-            return Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20.0),
-                color: isSelected
-                    ? isCorrect
-                        ? Vx.green500
-                        : Vx.red500
-                    : Colors.white
-                        .withAlpha(200), // Semi-transparent for glass effect
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    spreadRadius: 0,
-                    blurRadius: 10,
-                    offset: const Offset(0, 4), // changes position of shadow
-                  ),
-                ],
-              ),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: isSelected ? Colors.white : Colors.black,
-                  backgroundColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20.0),
-                  ),
-                  textStyle: GoogleFonts.bitter(fontSize: 18),
-                  elevation:
-                      0, // Remove elevation since we're using custom shadow
-                  padding: const EdgeInsets.all(12),
-                ),
-                onPressed: () => _handleAnswer(index, dialogue),
-                child: Text(
-                  option,
-                  style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.black),
-                ),
-              ),
-            ).px4().py2(); // Add padding to create space around each grid item
-          },
-        ).expand(),
+        CachedNetworkImage(
+          imageUrl: dialogue.imageUrl,
+          imageBuilder: (context, imageProvider) =>
+              _buildImageContainer(context, imageProvider),
+          placeholder: (context, url) => CircularProgressIndicator(),
+          errorWidget: (context, url, error) =>
+              Icon(Icons.error_outline, size: 50, color: Colors.white),
+        ),
+        // Only display options if the image is loaded
+        if (_isImageLoaded) _buildOptionsGrid(dialogue),
       ]),
     );
+  }
+
+  Widget _buildImageContainer(
+      BuildContext context, ImageProvider imageProvider) {
+    if (!_isImageLoaded) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _isImageLoaded = true;
+        });
+      });
+    }
+    return VxBox(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: Image(image: imageProvider, fit: BoxFit.fill),
+      ),
+    )
+        .shadowXl
+        .color(Colors.transparent)
+        .height(context.percentHeight * 60)
+        .make()
+        .p16();
+  }
+
+  Widget _buildOptionsGrid(Dialogue dialogue) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 3,
+        crossAxisSpacing: 0, // Add space between columns
+        mainAxisSpacing: 8, // Add space between rows
+      ),
+      itemCount: dialogue.options.length,
+      itemBuilder: (context, index) {
+        final option = dialogue.options[index];
+        final isSelected = _selectedOptionIndex == index;
+        final isCorrect = dialogue.rightOptionIndex == index;
+
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20.0),
+            color: isSelected
+                ? isCorrect
+                    ? Vx.green500
+                    : Vx.red500
+                : Colors.white
+                    .withAlpha(200), // Semi-transparent for glass effect
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                spreadRadius: 0,
+                blurRadius: 10,
+                offset: const Offset(0, 4), // changes position of shadow
+              ),
+            ],
+          ),
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              foregroundColor: isSelected ? Colors.white : Colors.black,
+              backgroundColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.0),
+              ),
+              textStyle: GoogleFonts.bitter(fontSize: 18),
+              elevation: 0, // Remove elevation since we're using custom shadow
+              padding: const EdgeInsets.all(12),
+            ),
+            onPressed: () => _handleAnswer(index, dialogue),
+            child: Text(
+              option,
+              style: TextStyle(color: isSelected ? Colors.white : Colors.black),
+            ),
+          ),
+        ).px4().py2(); // Add padding to create space around each grid item
+      },
+    ).expand();
   }
 }
