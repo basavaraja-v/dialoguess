@@ -5,8 +5,11 @@ import 'package:velocity_x/velocity_x.dart';
 import '../models/dialogue.dart';
 import '../services/firebase_service.dart';
 import '../services/dialogue_service.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class PlayScreen extends StatefulWidget {
+  const PlayScreen({super.key});
+
   @override
   _PlayScreenState createState() => _PlayScreenState();
 }
@@ -74,14 +77,14 @@ class _PlayScreenState extends State<PlayScreen> {
           ),
           actions: <Widget>[
             ElevatedButton(
-              child: Text("Next",
-                  style: GoogleFonts.bitter(fontSize: 20, color: Colors.white)),
               style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blueGrey[900]),
               onPressed: () {
                 Navigator.of(context).pop(
                     'next'); // Close the dialog and pass back 'next' as the result.
               },
+              child: Text("Next",
+                  style: GoogleFonts.bitter(fontSize: 20, color: Colors.white)),
             ).centered(),
           ],
         );
@@ -115,15 +118,11 @@ class _PlayScreenState extends State<PlayScreen> {
                 style: GoogleFonts.bitter(fontSize: 18),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 20), // Adds space between text and image
+              const SizedBox(height: 20), // Adds space between text and image
             ],
           ),
           actions: <Widget>[
             ElevatedButton(
-              child: Text(
-                "OK",
-                style: GoogleFonts.bitter(fontSize: 20, color: Colors.white),
-              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueGrey[900],
               ),
@@ -131,6 +130,10 @@ class _PlayScreenState extends State<PlayScreen> {
                 Navigator.of(context).pop(); // Close the dialog
                 _loadNextLevel(); // Load the next level
               },
+              child: Text(
+                "OK",
+                style: GoogleFonts.bitter(fontSize: 20, color: Colors.white),
+              ),
             ).centered(),
           ],
         );
@@ -161,11 +164,6 @@ class _PlayScreenState extends State<PlayScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             HStack([
-              // Image.asset(
-              //   "assets/images/badge.png",
-              //   height: 24.0,
-              //   width: 24.0,
-              // ),
               Text(
                 '$_currentLevel',
                 style: GoogleFonts.bitter(fontSize: 20, color: Colors.white),
@@ -179,7 +177,7 @@ class _PlayScreenState extends State<PlayScreen> {
                 .glassMorphic() // Styling the badge with a box
           ],
         ),
-        backgroundColor: Colors.blueGrey[900],
+        backgroundColor: Colors.blueGrey.shade900,
         elevation: 0,
         actions: <Widget>[
           HStack([
@@ -188,11 +186,12 @@ class _PlayScreenState extends State<PlayScreen> {
               height: 24.0,
               width: 24.0,
             ),
+            const SizedBox(width: 8),
             Text('$_rewardPoints',
                 style: GoogleFonts.bitter(fontSize: 20, color: Colors.white)),
           ])
               .pOnly(right: 10, left: 10)
-              .backgroundColor(Colors.blueGrey.shade800)
+              .backgroundColor(Colors.blueGrey.shade900)
               .glassMorphic(),
         ],
       ),
@@ -205,7 +204,7 @@ class _PlayScreenState extends State<PlayScreen> {
             return _buildGameScreen(dialogue);
           } else if (snapshot.hasError) {
             return Center(
-                child: Text('Error fetching dialogue')
+                child: const Text('Wow! you finished all the Levels')
                     .text
                     .textStyle(
                         GoogleFonts.bitter(fontSize: 25, color: Colors.white))
@@ -213,7 +212,7 @@ class _PlayScreenState extends State<PlayScreen> {
                     .xl2
                     .make());
           } else {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
         },
       ),
@@ -237,13 +236,13 @@ class _PlayScreenState extends State<PlayScreen> {
         VxBox(
           child: ClipRRect(
             borderRadius: BorderRadius.circular(30),
-            child: Image.network(
-              dialogue.imageUrl,
+            child: CachedNetworkImage(
+              imageUrl: dialogue.imageUrl,
               fit: BoxFit.fill,
-              errorBuilder: (context, error, stackTrace) {
-                return Icon(Icons.error_outline,
-                    size: 50, color: Colors.white); // Handle image load error
-              },
+              placeholder: (context, url) =>
+                  Center(child: CircularProgressIndicator()),
+              errorWidget: (context, url, error) =>
+                  Icon(Icons.error_outline, size: 50, color: Colors.white),
             ),
           ),
         )
@@ -255,8 +254,8 @@ class _PlayScreenState extends State<PlayScreen> {
         // Options grid
         GridView.builder(
           shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             childAspectRatio: 3,
             crossAxisSpacing: 0, // Add space between columns
@@ -282,21 +281,21 @@ class _PlayScreenState extends State<PlayScreen> {
                     color: Colors.black.withOpacity(0.2),
                     spreadRadius: 0,
                     blurRadius: 10,
-                    offset: Offset(0, 4), // changes position of shadow
+                    offset: const Offset(0, 4), // changes position of shadow
                   ),
                 ],
               ),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  primary: Colors.transparent,
-                  onPrimary: isSelected ? Colors.white : Colors.black,
+                  foregroundColor: isSelected ? Colors.white : Colors.black,
+                  backgroundColor: Colors.transparent,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20.0),
                   ),
                   textStyle: GoogleFonts.bitter(fontSize: 18),
                   elevation:
                       0, // Remove elevation since we're using custom shadow
-                  padding: EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12),
                 ),
                 onPressed: () => _handleAnswer(index, dialogue),
                 child: Text(

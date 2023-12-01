@@ -8,6 +8,7 @@ class GradientText extends StatelessWidget {
   final double fontSize;
 
   const GradientText({
+    super.key,
     required this.text,
     required this.gradient,
     required this.fontSize,

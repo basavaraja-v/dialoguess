@@ -8,19 +8,22 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(DialoDashApp());
+  runApp(const DialoDashApp());
 }
 
 class DialoDashApp extends StatelessWidget {
+  const DialoDashApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'DialoGuess',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: StartScreen(),
+      home: const StartScreen(),
       // Add more routes here as you implement other screens
     );
   }
