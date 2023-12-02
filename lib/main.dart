@@ -8,11 +8,11 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const DialoDashApp());
+  runApp(const DialoguessApp());
 }
 
-class DialoDashApp extends StatelessWidget {
-  const DialoDashApp({super.key});
+class DialoguessApp extends StatelessWidget {
+  const DialoguessApp({super.key});
 
   @override
   Widget build(BuildContext context) {

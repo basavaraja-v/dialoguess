@@ -6,6 +6,7 @@ import '../models/dialogue.dart';
 import '../services/firebase_service.dart';
 import '../services/dialogue_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
@@ -208,13 +209,15 @@ class _PlayScreenState extends State<PlayScreen> {
             return Center(
                 child: const Text('Wow! you finished all the Levels')
                     .text
-                    .textStyle(
-                        GoogleFonts.bitter(fontSize: 25, color: Colors.white))
-                    .red600
+                    .textStyle(GoogleFonts.bitter(fontSize: 25))
+                    .green600
                     .xl2
                     .make());
           } else {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+                child: CircularProgressIndicator(
+              color: Color.fromARGB(255, 44, 56, 61),
+            ));
           }
         },
       ),
@@ -228,22 +231,35 @@ class _PlayScreenState extends State<PlayScreen> {
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
           colors: [
-            Colors.blueGrey.shade800, // Start color of the gradient
-            Colors.blueGrey.shade800, // End color of the gradient
+            Colors.blueGrey.shade800,
+            Colors.blueGrey.shade800,
           ],
         ),
       ),
       child: VStack([
-        CachedNetworkImage(
-          imageUrl: dialogue.imageUrl,
-          imageBuilder: (context, imageProvider) =>
-              _buildImageContainer(context, imageProvider),
-          placeholder: (context, url) => CircularProgressIndicator(),
-          errorWidget: (context, url, error) =>
-              Icon(Icons.error_outline, size: 50, color: Colors.white),
+        FutureBuilder<Dialogue>(
+          future: _dialogueFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return _buildImageShimmerEffect(context);
+            }
+            if (snapshot.hasData) {
+              return CachedNetworkImage(
+                imageUrl: dialogue.imageUrl,
+                imageBuilder: (context, imageProvider) =>
+                    _buildImageContainer(context, imageProvider),
+                placeholder: (context, url) =>
+                    _buildImageShimmerEffect(context),
+                errorWidget: (context, url, error) =>
+                    Icon(Icons.error_outline, size: 50, color: Colors.white),
+              );
+            }
+            return Text("Error loading image");
+          },
         ),
-        // Only display options if the image is loaded
-        if (_isImageLoaded) _buildOptionsGrid(dialogue),
+        _isImageLoaded
+            ? _buildOptionsGrid(dialogue)
+            : _buildOptionShimmerEffect(),
       ]),
     );
   }
@@ -324,5 +340,44 @@ class _PlayScreenState extends State<PlayScreen> {
         ).px4().py2(); // Add padding to create space around each grid item
       },
     ).expand();
+  }
+
+  Widget _buildImageShimmerEffect(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: Colors.blueGrey[700]!,
+      highlightColor: Colors.blueGrey[500]!,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.blueGrey[900],
+          borderRadius: BorderRadius.circular(30),
+        ),
+        height: context.percentHeight * 60,
+        width: double.infinity,
+      ),
+    ).p16();
+  }
+
+  Widget _buildOptionShimmerEffect() {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      childAspectRatio: 3,
+      // Adjust to match the aspect ratio of actual options
+      children: List.generate(4, (index) {
+        // Create 4 placeholders
+        return Shimmer.fromColors(
+          baseColor: Colors.blueGrey[700]!,
+          highlightColor: Colors.blueGrey[500]!,
+          child: Container(
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.blueGrey[900],
+              borderRadius: BorderRadius.circular(20),
+            ),
+          ),
+        );
+      }),
+    ).px24().py20();
   }
 }
