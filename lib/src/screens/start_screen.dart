@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:ui'; // Import this for ImageFilter
+import '../controllers/audio_manager.dart';
 import 'play_screen.dart';
 import 'settings_screen.dart';
 import '../widgets/custom_button.dart';
@@ -65,6 +65,7 @@ class StartScreen extends StatelessWidget {
                     icon: Icons.play_arrow,
                     text: 'Play',
                     onPressed: () {
+                      AudioManager.playSFX('click.mp3');
                       Navigator.of(context).push(
                         MaterialPageRoute(
                             builder: (context) => const PlayScreen()),

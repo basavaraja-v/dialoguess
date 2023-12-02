@@ -7,6 +7,7 @@ import '../services/firebase_service.dart';
 import '../services/dialogue_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
+import '../controllers/audio_manager.dart';
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
@@ -54,9 +55,11 @@ class _PlayScreenState extends State<PlayScreen> {
         _rewardPoints = updatedPoints;
       });
       _showCongratulationsPopup();
+      AudioManager.playSFX('correctans.mp3');
     } else {
       // Implement failure animation or effect
       _showWrongAnswerPopup(dialogue);
+      AudioManager.playSFX('wrongans.mp3');
     }
   }
 
@@ -69,7 +72,9 @@ class _PlayScreenState extends State<PlayScreen> {
         return AlertDialog(
           title: Text("Congratulations!",
                   style: GoogleFonts.bitter(
-                      fontSize: 20, color: Colors.blueGrey[900]))
+                      fontSize: 20,
+                      color: Colors.blueGrey[900],
+                      fontWeight: FontWeight.bold))
               .centered(),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -82,6 +87,7 @@ class _PlayScreenState extends State<PlayScreen> {
               style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blueGrey[900]),
               onPressed: () {
+                AudioManager.playSFX('click.mp3');
                 Navigator.of(context).pop(
                     'next'); // Close the dialog and pass back 'next' as the result.
               },
@@ -129,6 +135,7 @@ class _PlayScreenState extends State<PlayScreen> {
                 backgroundColor: Colors.blueGrey[900],
               ),
               onPressed: () {
+                AudioManager.playSFX('click.mp3');
                 Navigator.of(context).pop(); // Close the dialog
                 _loadNextLevel(); // Load the next level
               },
@@ -160,6 +167,7 @@ class _PlayScreenState extends State<PlayScreen> {
         leading: IconButton(
           icon: Image.asset("assets/images/back.png"),
           onPressed: () {
+            AudioManager.playSFX('click.mp3');
             Navigator.of(context).pop();
           },
         ),
@@ -169,7 +177,10 @@ class _PlayScreenState extends State<PlayScreen> {
             HStack([
               Text(
                 '$_currentLevel',
-                style: GoogleFonts.bitter(fontSize: 20, color: Colors.white),
+                style: GoogleFonts.bitter(
+                    fontSize: 20,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold),
               ).centered(), // Center the text within the VStack
             ])
                 .box
@@ -191,7 +202,10 @@ class _PlayScreenState extends State<PlayScreen> {
             ),
             const SizedBox(width: 8),
             Text('$_rewardPoints',
-                style: GoogleFonts.bitter(fontSize: 20, color: Colors.white)),
+                style: GoogleFonts.bitter(
+                    fontSize: 20,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold)),
           ])
               .pOnly(right: 10, left: 10)
               .backgroundColor(Colors.blueGrey.shade900)
@@ -278,68 +292,71 @@ class _PlayScreenState extends State<PlayScreen> {
         borderRadius: BorderRadius.circular(30),
         child: Image(image: imageProvider, fit: BoxFit.fill),
       ),
-    )
-        .shadowXl
-        .color(Colors.transparent)
-        .height(context.percentHeight * 60)
-        .make()
-        .p16();
+    ).shadowXl.color(Colors.transparent).make().p16();
   }
 
   Widget _buildOptionsGrid(Dialogue dialogue) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 3,
-        crossAxisSpacing: 0, // Add space between columns
-        mainAxisSpacing: 8, // Add space between rows
-      ),
-      itemCount: dialogue.options.length,
-      itemBuilder: (context, index) {
-        final option = dialogue.options[index];
-        final isSelected = _selectedOptionIndex == index;
-        final isCorrect = dialogue.rightOptionIndex == index;
+    return LayoutBuilder(builder: (context, constraints) {
+      // Adjust the aspect ratio based on the screen width
+      double width = constraints.maxWidth;
+      double childAspectRatio =
+          width > 600 ? 4 : 3; // Wider aspect ratio for larger screens
 
-        return Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20.0),
-            color: isSelected
-                ? isCorrect
-                    ? Vx.green500
-                    : Vx.red500
-                : Colors.white
-                    .withAlpha(200), // Semi-transparent for glass effect
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                spreadRadius: 0,
-                blurRadius: 10,
-                offset: const Offset(0, 4), // changes position of shadow
-              ),
-            ],
-          ),
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              foregroundColor: isSelected ? Colors.white : Colors.black,
-              backgroundColor: Colors.transparent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20.0),
-              ),
-              textStyle: GoogleFonts.bitter(fontSize: 18),
-              elevation: 0, // Remove elevation since we're using custom shadow
-              padding: const EdgeInsets.all(12),
+      return GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: childAspectRatio, // Adjusted aspect ratio
+          crossAxisSpacing: 0,
+          mainAxisSpacing: 8,
+        ),
+        itemCount: dialogue.options.length,
+        itemBuilder: (context, index) {
+          final option = dialogue.options[index];
+          final isSelected = _selectedOptionIndex == index;
+          final isCorrect = dialogue.rightOptionIndex == index;
+
+          return Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20.0),
+              color: isSelected
+                  ? isCorrect
+                      ? Vx.green500
+                      : Vx.red500
+                  : Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  spreadRadius: 0,
+                  blurRadius: 10,
+                  offset: const Offset(0, 4), // changes position of shadow
+                ),
+              ],
             ),
-            onPressed: () => _handleAnswer(index, dialogue),
-            child: Text(
-              option,
-              style: TextStyle(color: isSelected ? Colors.white : Colors.black),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                foregroundColor: isSelected ? Colors.white : Colors.black,
+                backgroundColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+                textStyle: GoogleFonts.bitter(fontSize: 18),
+                elevation:
+                    0, // Remove elevation since we're using custom shadow
+                padding: const EdgeInsets.all(12),
+              ),
+              onPressed: () => _handleAnswer(index, dialogue),
+              child: Text(
+                option,
+                style:
+                    TextStyle(color: isSelected ? Colors.white : Colors.black),
+              ),
             ),
-          ),
-        ).px4().py2(); // Add padding to create space around each grid item
-      },
-    ).expand();
+          ).px2(); // Add padding to create space around each grid item
+        },
+      );
+    }).expand();
   }
 
   Widget _buildImageShimmerEffect(BuildContext context) {

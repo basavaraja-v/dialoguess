@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../controllers/audio_manager.dart';
 
 class SettingsScreen extends StatefulWidget {
   @override
@@ -6,53 +9,83 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  double _volumeLevel = 0.5;
   bool _musicEnabled = true;
+  bool _sfxEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    loadSettings();
+  }
+
+  void loadSettings() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _musicEnabled = prefs.getBool('musicEnabled') ?? true;
+      _sfxEnabled = prefs.getBool('sfxEnabled') ?? true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Settings'),
-        backgroundColor: Colors.blueGrey, // Customizing the AppBar color
+        leading: IconButton(
+          icon: Image.asset("assets/images/back.png"),
+          onPressed: () {
+            AudioManager.playSFX('click.mp3');
+            Navigator.of(context).pop();
+          },
+        ),
+        title: Text('Settings',
+            style: GoogleFonts.bitter(
+                fontSize: 20,
+                color: Colors.white,
+                fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.blueGrey[900],
+        centerTitle: true,
       ),
-      backgroundColor:
-          Colors.blue[100], // Light blue background for the settings screen
-      body: Container(
+      backgroundColor: Colors.blueGrey[800],
+      body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(
-              'Volume',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            Slider(
-              value: _volumeLevel,
-              onChanged: (newVolume) {
-                setState(() {
-                  _volumeLevel = newVolume;
-                });
-              },
-              min: 0,
-              max: 1,
-              divisions: 10,
-              activeColor: Colors.blueGrey,
-            ),
-            SizedBox(height: 20),
             ListTile(
-              title: Text('Music'),
-              trailing: Switch(
-                value: _musicEnabled,
-                onChanged: (newVal) {
+              leading: Icon(Icons.music_note, color: Colors.white),
+              title: Text('Music',
+                  style: GoogleFonts.bitter(fontSize: 18, color: Colors.white)),
+              trailing: IconButton(
+                icon: Icon(
+                  _musicEnabled ? Icons.volume_up : Icons.volume_off,
+                  color: Colors.white,
+                ),
+                onPressed: () {
                   setState(() {
-                    _musicEnabled = newVal;
+                    _musicEnabled = !_musicEnabled;
+                    AudioManager.setMusicEnabled(_musicEnabled);
                   });
                 },
-                activeColor: Colors.blueGrey,
               ),
             ),
-            // Add more settings options here as needed
+            ListTile(
+              leading: Icon(Icons.audio_file, color: Colors.white),
+              title: Text('Sound FX',
+                  style: GoogleFonts.bitter(fontSize: 18, color: Colors.white)),
+              trailing: IconButton(
+                icon: Icon(
+                  _sfxEnabled ? Icons.volume_up : Icons.volume_off,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _sfxEnabled = !_sfxEnabled;
+                    AudioManager.setSFXEnabled(_sfxEnabled);
+                  });
+                },
+              ),
+            ),
+            // Additional settings options...
           ],
         ),
       ),
