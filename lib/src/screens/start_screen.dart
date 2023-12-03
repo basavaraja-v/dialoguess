@@ -4,6 +4,7 @@ import '../controllers/audio_manager.dart';
 import 'play_screen.dart';
 import 'settings_screen.dart';
 import '../widgets/custom_button.dart';
+import 'package:share_plus/share_plus.dart';
 
 class StartScreen extends StatelessWidget {
   const StartScreen({super.key});
@@ -28,7 +29,12 @@ class StartScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.share, color: Colors.white),
             onPressed: () {
-              // Implement sharing functionality
+              String googlePlayLink =
+                  "https://play.google.com/store/apps/details?id=com.heyidb.dialoguess";
+              // If you have an Apple App Store link, include it here
+              String shareMessage =
+                  "Check out Dialoguess, an engaging conversational adventure game! Download on Google Play: $googlePlayLink";
+              Share.share(shareMessage);
             },
           ),
           IconButton(

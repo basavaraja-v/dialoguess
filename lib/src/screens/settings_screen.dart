@@ -52,12 +52,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             ListTile(
-              leading: Icon(Icons.music_note, color: Colors.white),
               title: Text('Music',
                   style: GoogleFonts.bitter(fontSize: 18, color: Colors.white)),
               trailing: IconButton(
                 icon: Icon(
-                  _musicEnabled ? Icons.volume_up : Icons.volume_off,
+                  _musicEnabled
+                      ? Icons.music_note_outlined
+                      : Icons.music_off_outlined,
                   color: Colors.white,
                 ),
                 onPressed: () {
@@ -69,12 +70,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             ListTile(
-              leading: Icon(Icons.audio_file, color: Colors.white),
               title: Text('Sound FX',
                   style: GoogleFonts.bitter(fontSize: 18, color: Colors.white)),
               trailing: IconButton(
                 icon: Icon(
-                  _sfxEnabled ? Icons.volume_up : Icons.volume_off,
+                  _sfxEnabled ? Icons.graphic_eq : Icons.volume_off,
                   color: Colors.white,
                 ),
                 onPressed: () {
