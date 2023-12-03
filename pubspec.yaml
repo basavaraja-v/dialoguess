@@ -21,6 +21,12 @@ dependencies:
   audioplayers: ^5.2.1
   share_plus: ^7.2.1
 
+flutter_native_splash:
+  color: "263238"
+  image: assets/logo.png
+  android: true
+  ios: true
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -10,7 +10,8 @@ import 'package:shimmer/shimmer.dart';
 import '../controllers/audio_manager.dart';
 
 class PlayScreen extends StatefulWidget {
-  const PlayScreen({super.key});
+  final VoidCallback onUpdate;
+  const PlayScreen({super.key, required this.onUpdate});
 
   @override
   _PlayScreenState createState() => _PlayScreenState();
@@ -56,11 +57,18 @@ class _PlayScreenState extends State<PlayScreen> {
       });
       _showCongratulationsPopup();
       AudioManager.playSFX('correctans.mp3');
+      widget.onUpdate();
     } else {
       // Implement failure animation or effect
       _showWrongAnswerPopup(dialogue);
       AudioManager.playSFX('wrongans.mp3');
     }
+  }
+
+  @override
+  void dispose() {
+    widget.onUpdate(); // Also call onUpdate when PlayScreen is disposed
+    super.dispose();
   }
 
   void _showCongratulationsPopup() {
