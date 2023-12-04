@@ -59,8 +59,8 @@ class _PlayScreenState extends State<PlayScreen> {
       setState(() {
         _rewardPoints = updatedPoints;
       });
+      // AudioManager.playSFX('correctans.mp3');
       _showCongratulationsPopup();
-      AudioManager.playSFX('correctans.mp3');
       widget.onUpdate();
     } else {
       // Implement failure animation or effect
@@ -83,14 +83,15 @@ class _PlayScreenState extends State<PlayScreen> {
 
     // Preload the next level
     _loadNextLevel();
-
+    bool tengthLevel = (_currentLevel % 10) == 0;
+    String popupTitle = tengthLevel ? "Congratulations!" : "Great!";
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(
-            "Congratulations!",
+            popupTitle,
             style: GoogleFonts.bitter(
                 fontSize: 20,
                 color: Colors.blueGrey[900],
@@ -99,10 +100,12 @@ class _PlayScreenState extends State<PlayScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              if (_currentLevel % 10 == 0) // Show trophy every 10th level
-                Image.asset("assets/images/trophy.png"),
-              // Lottie animation
-              Lottie.asset('assets/animations/confetti.json'),
+              (tengthLevel)
+                  ? // Show trophy every 10th level
+                  Image.asset("assets/images/trophy.png")
+                  :
+                  // Lottie animation
+                  Lottie.asset('assets/animations/confetti.json'),
               // Confetti widget
               ConfettiWidget(
                 confettiController: _confettiController,
