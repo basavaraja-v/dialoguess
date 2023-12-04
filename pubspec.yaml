@@ -20,6 +20,7 @@ dependencies:
   flutter_native_splash:
   audioplayers: ^5.2.1
   share_plus: ^7.2.1
+  confetti: ^0.7.0
 
 flutter_native_splash:
   color: "263238"
@@ -38,3 +39,4 @@ flutter:
     - assets/images/
     - assets/music/
     - assets/sfx/
+    - assets/animations/

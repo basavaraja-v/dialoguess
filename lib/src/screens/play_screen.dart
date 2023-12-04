@@ -8,6 +8,7 @@ import '../services/dialogue_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import '../controllers/audio_manager.dart';
+import 'package:confetti/confetti.dart';
 
 class PlayScreen extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -25,10 +26,13 @@ class _PlayScreenState extends State<PlayScreen> {
   int _rewardPoints = 0;
   int? _selectedOptionIndex;
   bool _isImageLoaded = false;
+  final ConfettiController _confettiController =
+      ConfettiController(duration: const Duration(seconds: 3));
 
   @override
   void initState() {
     super.initState();
+    _confettiController.play();
     _loadInitialData();
   }
 
@@ -68,26 +72,43 @@ class _PlayScreenState extends State<PlayScreen> {
   @override
   void dispose() {
     widget.onUpdate(); // Also call onUpdate when PlayScreen is disposed
+    _confettiController.dispose();
     super.dispose();
   }
 
   void _showCongratulationsPopup() {
+    // Start playing confetti
+    _confettiController.play();
+    AudioManager.playSFX('blast.mp3');
+
+    // Preload the next level
+    _loadNextLevel();
+
     showDialog(
       context: context,
-      barrierDismissible:
-          false, // Prevents dismissing the dialog by tapping outside of it
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Congratulations!",
-                  style: GoogleFonts.bitter(
-                      fontSize: 20,
-                      color: Colors.blueGrey[900],
-                      fontWeight: FontWeight.bold))
-              .centered(),
+          title: Text(
+            "Congratulations!",
+            style: GoogleFonts.bitter(
+                fontSize: 20,
+                color: Colors.blueGrey[900],
+                fontWeight: FontWeight.bold),
+          ).centered(),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Image.asset("assets/images/trophy.png"),
+              if (_currentLevel % 10 == 0) // Show trophy every 10th level
+                Image.asset("assets/images/trophy.png"),
+              // Lottie animation
+              Lottie.asset('assets/animations/confetti.json'),
+              // Confetti widget
+              ConfettiWidget(
+                confettiController: _confettiController,
+                blastDirectionality: BlastDirectionality.explosive,
+                // Other confetti properties
+              ),
             ],
           ),
           actions: <Widget>[
@@ -96,8 +117,8 @@ class _PlayScreenState extends State<PlayScreen> {
                   backgroundColor: Colors.blueGrey[900]),
               onPressed: () {
                 AudioManager.playSFX('click.mp3');
-                Navigator.of(context).pop(
-                    'next'); // Close the dialog and pass back 'next' as the result.
+                Navigator.of(context).pop('next');
+                _confettiController.stop(); // Stop the confetti animation
               },
               child: Text("Next",
                   style: GoogleFonts.bitter(fontSize: 20, color: Colors.white)),
@@ -106,15 +127,15 @@ class _PlayScreenState extends State<PlayScreen> {
         );
       },
     ).then((result) {
-      // Since barrierDismissible is false, result will not be null when dismissed by tapping outside
-      // 'next' will be passed back when the "Next" button is pressed.
       if (result == 'next' || result == null) {
-        _loadNextLevel(); // Load the next level
+        // Just close the popup, next level is already loaded
       }
     });
   }
 
   void _showWrongAnswerPopup(Dialogue dialogue) {
+    _loadNextLevel(); // Load the next level
+
     showDialog(
       context: context,
       barrierDismissible:
@@ -145,7 +166,6 @@ class _PlayScreenState extends State<PlayScreen> {
               onPressed: () {
                 AudioManager.playSFX('click.mp3');
                 Navigator.of(context).pop(); // Close the dialog
-                _loadNextLevel(); // Load the next level
               },
               child: Text(
                 "OK",
