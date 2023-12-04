@@ -21,6 +21,7 @@ class DialoguessApp extends StatefulWidget {
 
 class _DialoguessAppState extends State<DialoguessApp>
     with WidgetsBindingObserver {
+  bool _wasAppMinimized = false;
   @override
   void initState() {
     super.initState();
@@ -44,10 +45,24 @@ class _DialoguessAppState extends State<DialoguessApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.paused) {
-      AudioManager.pauseBackgroundMusic(); // Pause music when app is inactive
-    } else if (state == AppLifecycleState.resumed) {
-      AudioManager.resumeBackgroundMusic(); // Resume music when app is active
+    switch (state) {
+      case AppLifecycleState.paused:
+        // App is in background
+        _wasAppMinimized = true;
+        AudioManager.pauseBackgroundMusic();
+        break;
+      case AppLifecycleState.resumed:
+        // App is back to foreground
+        if (!_wasAppMinimized) {
+          AudioManager.resumeBackgroundMusic();
+        }
+        break;
+      case AppLifecycleState.inactive:
+        // App is in an inactive state (like receiving a phone call)
+        _wasAppMinimized = false;
+        break;
+      default:
+        break;
     }
   }
 
