@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 import 'package:velocity_x/velocity_x.dart';
 import '../models/dialogue.dart';
 import '../services/firebase_service.dart';
@@ -12,6 +13,9 @@ import 'package:shimmer/shimmer.dart';
 import '../controllers/audio_manager.dart';
 import 'package:confetti/confetti.dart';
 import 'package:animated_flip_counter/animated_flip_counter.dart';
+import '../ads/ads_controller.dart';
+import '../ads/banner_ad_widget.dart';
+import '../in_app_purchase/in_app_purchase.dart';
 
 class PlayScreen extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -52,6 +56,7 @@ class _PlayScreenState extends State<PlayScreen> {
 
   void _handleAnswer(int selectedOptionIndex, Dialogue dialogue) async {
     final isCorrect = selectedOptionIndex == dialogue.rightOptionIndex;
+
     setState(() {
       _selectedOptionIndex = selectedOptionIndex;
     });
@@ -80,75 +85,88 @@ class _PlayScreenState extends State<PlayScreen> {
   }
 
   void _showCongratulationsPopup() {
-    // Start playing confetti
     _confettiController.play();
     bool tengthLevel = (_currentLevel % 10) == 0;
     tengthLevel
         ? AudioManager.playSFX('cheers.mp3')
         : AudioManager.playSFX('blast.mp3');
 
-    // Preload the next level
     _loadNextLevel();
     List<String> titles = ["Great!", "Brilliant!", "Awesome!", "Well Done!"];
     Random random = Random();
     String popupTitle = tengthLevel
         ? "Congratulations!"
         : titles[random.nextInt(titles.length)];
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            popupTitle,
-            style: GoogleFonts.bitter(
-                fontSize: 20,
-                color: Colors.blueGrey[900],
-                fontWeight: FontWeight.bold),
-          ).centered(),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Image.asset(
-                "assets/images/coins.png",
-                height: 100.0,
-                width: 100.0,
+        var screenSize = MediaQuery.of(context).size;
+        final adsControllerAvailable = context.watch<AdsController?>() != null;
+        final adsRemoved =
+            context.watch<InAppPurchaseController?>()?.adRemoval.active ??
+                false;
+        return Dialog(
+          insetPadding: const EdgeInsets.all(8),
+          child: SizedBox(
+            width: screenSize.width,
+            height: screenSize.height,
+            child: Scaffold(
+              body: SingleChildScrollView(
+                child: Center(
+                  // Use Center to align the column vertically
+                  child: Column(
+                    mainAxisSize:
+                        MainAxisSize.min, // Use min size for the column
+                    mainAxisAlignment:
+                        MainAxisAlignment.center, // Center the content
+                    children: <Widget>[
+                      // Your existing widgets and layout go here
+                      const SizedBox(height: 50),
+                      Text(popupTitle,
+                          style: GoogleFonts.bitter(
+                              fontSize: 20,
+                              color: Colors.blueGrey[900],
+                              fontWeight: FontWeight.bold)),
+                      // Image.asset(
+                      //   "assets/images/coins.png",
+                      //   height: 100.0,
+                      //   width: 100.0,
+                      // ),
+                      ConfettiWidget(
+                        confettiController: _confettiController,
+                        blastDirectionality: BlastDirectionality.explosive,
+                        // Other confetti properties
+                      ),
+                      tengthLevel
+                          ? Image.asset("assets/images/trophy.png",
+                              width: 200, height: 200)
+                          : Lottie.asset('assets/animations/confetti.json',
+                              width: 200, height: 200),
+                      // Confetti widget
+                      if (adsControllerAvailable && !adsRemoved) ...[
+                        const BannerAdWidget(),
+                      ],
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(
-                height: 20,
+              floatingActionButton: FloatingActionButton(
+                onPressed: () {
+                  AudioManager.playSFX('click.mp3');
+                  Navigator.of(context).pop('next');
+                  _confettiController.stop();
+                },
+                child: const Icon(Icons.arrow_forward),
               ),
-              tengthLevel
-                  ? // Show trophy every 10th level
-                  Image.asset("assets/images/trophy.png")
-                  :
-                  // Lottie animation
-                  Lottie.asset('assets/animations/confetti.json'),
-              // Confetti widget
-              ConfettiWidget(
-                confettiController: _confettiController,
-                blastDirectionality: BlastDirectionality.explosive,
-                // Other confetti properties
-              ),
-            ],
+            ),
           ),
-          actions: <Widget>[
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueGrey[900]),
-              onPressed: () {
-                AudioManager.playSFX('click.mp3');
-                Navigator.of(context).pop('next');
-                _confettiController.stop(); // Stop the confetti animation
-              },
-              child: Text("Next",
-                  style: GoogleFonts.bitter(fontSize: 20, color: Colors.white)),
-            ).centered(),
-          ],
         );
       },
     ).then((result) {
       if (result == 'next' || result == null) {
-        // Just close the popup, next level is already loaded
+        // Close the popup, next level is already loaded
       }
     });
   }
@@ -161,38 +179,53 @@ class _PlayScreenState extends State<PlayScreen> {
       barrierDismissible:
           false, // Prevents dismissing the dialog by tapping outside of it
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            "Oops! Wrong Answer",
-            style:
-                GoogleFonts.bitter(fontSize: 20, color: Colors.blueGrey[900]),
-          ).centered(),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                "The correct answer was: ${dialogue.options[dialogue.rightOptionIndex]}",
-                style: GoogleFonts.bitter(fontSize: 18),
-                textAlign: TextAlign.center,
+        final screenSize = MediaQuery.of(context).size;
+        final adsControllerAvailable = context.watch<AdsController?>() != null;
+        final adsRemoved =
+            context.watch<InAppPurchaseController?>()?.adRemoval.active ??
+                false;
+
+        return Dialog(
+          insetPadding: const EdgeInsets.all(8),
+          child: SizedBox(
+            width: screenSize.width,
+            height: screenSize.height,
+            child: Scaffold(
+              body: SingleChildScrollView(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      const SizedBox(height: 50),
+                      Text(
+                        "Oops! Wrong Answer",
+                        style: GoogleFonts.bitter(
+                            fontSize: 20, color: Colors.blueGrey[900]),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        "The correct answer was: ${dialogue.options[dialogue.rightOptionIndex]}",
+                        style: GoogleFonts.bitter(fontSize: 18),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
+                      if (adsControllerAvailable && !adsRemoved) ...[
+                        const BannerAdWidget(),
+                      ],
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 20), // Adds space between text and image
-            ],
+              floatingActionButton: FloatingActionButton(
+                onPressed: () {
+                  AudioManager.playSFX('click.mp3');
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: const Icon(Icons.arrow_forward),
+              ),
+            ),
           ),
-          actions: <Widget>[
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueGrey[900],
-              ),
-              onPressed: () {
-                AudioManager.playSFX('click.mp3');
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              child: Text(
-                "OK",
-                style: GoogleFonts.bitter(fontSize: 20, color: Colors.white),
-              ),
-            ).centered(),
-          ],
         );
       },
     );
@@ -249,13 +282,17 @@ class _PlayScreenState extends State<PlayScreen> {
               width: 24.0,
             ),
             const SizedBox(width: 8),
-            AnimatedFlipCounter(
-              value: _rewardPoints, // Pass in your reward points variable
-              duration: const Duration(milliseconds: 4000), // Animation speed
-              textStyle: GoogleFonts.bitter(
-                fontSize: 20,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+            FittedBox(
+              // Wrap with FittedBox
+              fit: BoxFit.fitHeight, // Adjust the fit as needed
+              child: AnimatedFlipCounter(
+                value: _rewardPoints,
+                duration: const Duration(milliseconds: 2000),
+                textStyle: GoogleFonts.bitter(
+                  fontSize: 20,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ])

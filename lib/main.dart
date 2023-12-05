@@ -1,15 +1,32 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:dialoguess/firebase_options.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'src/ads/ads_controller.dart';
 import 'src/screens/start_screen.dart';
 import 'src/controllers/audio_manager.dart'; // Import AudioManager
+import 'package:provider/provider.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const DialoguessApp());
+  AdsController? adsController;
+  if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+    /// Prepare the google_mobile_ads plugin so that the first ad loads
+    /// faster. This can be done later or with a delay if startup
+    /// experience suffers.
+    adsController = AdsController(MobileAds.instance);
+    adsController.initialize();
+  }
+  runApp(Provider<AdsController?>.value(
+    value: adsController,
+    child: const DialoguessApp(),
+  ));
 }
 
 class DialoguessApp extends StatefulWidget {
