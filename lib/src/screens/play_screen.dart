@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
@@ -9,6 +11,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import '../controllers/audio_manager.dart';
 import 'package:confetti/confetti.dart';
+import 'package:animated_flip_counter/animated_flip_counter.dart';
 
 class PlayScreen extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -79,12 +82,18 @@ class _PlayScreenState extends State<PlayScreen> {
   void _showCongratulationsPopup() {
     // Start playing confetti
     _confettiController.play();
-    AudioManager.playSFX('blast.mp3');
+    bool tengthLevel = (_currentLevel % 10) == 0;
+    tengthLevel
+        ? AudioManager.playSFX('cheers.mp3')
+        : AudioManager.playSFX('blast.mp3');
 
     // Preload the next level
     _loadNextLevel();
-    bool tengthLevel = (_currentLevel % 10) == 0;
-    String popupTitle = tengthLevel ? "Congratulations!" : "Great!";
+    List<String> titles = ["Great!", "Brilliant!", "Awesome!", "Well Done!"];
+    Random random = Random();
+    String popupTitle = tengthLevel
+        ? "Congratulations!"
+        : titles[random.nextInt(titles.length)];
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -100,7 +109,15 @@ class _PlayScreenState extends State<PlayScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              (tengthLevel)
+              Image.asset(
+                "assets/images/coins.png",
+                height: 100.0,
+                width: 100.0,
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              tengthLevel
                   ? // Show trophy every 10th level
                   Image.asset("assets/images/trophy.png")
                   :
@@ -232,11 +249,15 @@ class _PlayScreenState extends State<PlayScreen> {
               width: 24.0,
             ),
             const SizedBox(width: 8),
-            Text('$_rewardPoints',
-                style: GoogleFonts.bitter(
-                    fontSize: 20,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold)),
+            AnimatedFlipCounter(
+              value: _rewardPoints, // Pass in your reward points variable
+              duration: const Duration(milliseconds: 4000), // Animation speed
+              textStyle: GoogleFonts.bitter(
+                fontSize: 20,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ])
               .pOnly(right: 10, left: 10)
               .backgroundColor(Colors.blueGrey.shade900)
