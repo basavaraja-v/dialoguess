@@ -28,7 +28,7 @@ class CustomIconButton extends StatelessWidget {
         .alignCenter
         .withRounded(value: 10) // Rounded corners
         .neumorphic(
-            color: Colors.blueGrey[900], // Updated color for better integration
+            color: Colors.green[800], // Updated color for better integration
             elevation: 5.0,
             curve: VxCurve.flat // Flat design
             )

@@ -119,15 +119,15 @@ class _StartScreenState extends State<StartScreen> {
                           padding: const EdgeInsets.all(
                               8), // Add some padding inside the container
                           decoration: BoxDecoration(
-                            color: Colors
-                                .blueGrey[900], // Setting background color
+                            color:
+                                Colors.green[800], // Setting background color
                             borderRadius:
                                 BorderRadius.circular(10), // Rounded corners
                           ),
                           child: Text(
                             'Level: ${snapshot.data! - 1}',
                             style: GoogleFonts.pressStart2p(
-                                fontSize: 18, color: Colors.white),
+                                fontSize: 16, color: Colors.white),
                           ),
                         );
                       }
@@ -140,18 +140,18 @@ class _StartScreenState extends State<StartScreen> {
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
                         return Container(
-                          padding: EdgeInsets.all(
+                          padding: const EdgeInsets.all(
                               8), // Add some padding inside the container
                           decoration: BoxDecoration(
-                            color: Colors
-                                .blueGrey[900], // Setting background color
+                            color:
+                                Colors.green[800], // Setting background color
                             borderRadius:
                                 BorderRadius.circular(10), // Rounded corners
                           ),
                           child: Text(
                             'Highest Score: ${snapshot.data}',
                             style: GoogleFonts.pressStart2p(
-                                fontSize: 18, color: Colors.white),
+                                fontSize: 16, color: Colors.white),
                           ),
                         );
                       }
@@ -173,6 +173,7 @@ class _StartScreenState extends State<StartScreen> {
                       );
                     },
                   ),
+                  const SizedBox(height: 150),
                 ],
               ),
             ),

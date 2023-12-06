@@ -126,7 +126,7 @@ class _PlayScreenState extends State<PlayScreen> {
                       const SizedBox(height: 50),
                       Text(popupTitle,
                           style: GoogleFonts.bitter(
-                              fontSize: 20,
+                              fontSize: 24,
                               color: Colors.blueGrey[900],
                               fontWeight: FontWeight.bold)),
                       // Image.asset(
@@ -134,6 +134,7 @@ class _PlayScreenState extends State<PlayScreen> {
                       //   height: 100.0,
                       //   width: 100.0,
                       // ),
+                      // Confetti widget
                       ConfettiWidget(
                         confettiController: _confettiController,
                         blastDirectionality: BlastDirectionality.explosive,
@@ -144,7 +145,7 @@ class _PlayScreenState extends State<PlayScreen> {
                               width: 200, height: 200)
                           : Lottie.asset('assets/animations/confetti.json',
                               width: 200, height: 200),
-                      // Confetti widget
+                      const SizedBox(height: 10),
                       if (adsControllerAvailable && !adsRemoved) ...[
                         const BannerAdWidget(),
                       ],
@@ -153,12 +154,16 @@ class _PlayScreenState extends State<PlayScreen> {
                 ),
               ),
               floatingActionButton: FloatingActionButton(
+                backgroundColor: Colors.blueGrey[900],
                 onPressed: () {
                   AudioManager.playSFX('click.mp3');
                   Navigator.of(context).pop('next');
                   _confettiController.stop();
                 },
-                child: const Icon(Icons.arrow_forward),
+                child: const Icon(
+                  Icons.arrow_forward,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
@@ -201,7 +206,7 @@ class _PlayScreenState extends State<PlayScreen> {
                       Text(
                         "Oops! Wrong Answer",
                         style: GoogleFonts.bitter(
-                            fontSize: 20, color: Colors.blueGrey[900]),
+                            fontSize: 24, color: Colors.blueGrey[900]),
                       ),
                       const SizedBox(height: 20),
                       Text(
@@ -218,11 +223,15 @@ class _PlayScreenState extends State<PlayScreen> {
                 ),
               ),
               floatingActionButton: FloatingActionButton(
+                backgroundColor: Colors.blueGrey[900],
                 onPressed: () {
                   AudioManager.playSFX('click.mp3');
                   Navigator.of(context).pop(); // Close the dialog
                 },
-                child: const Icon(Icons.arrow_forward),
+                child: const Icon(
+                  Icons.arrow_forward,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
