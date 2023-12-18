@@ -22,4 +22,10 @@ class DialogueService {
     int currentPoints = prefs.getInt('rewardPoints') ?? 0;
     await prefs.setInt('rewardPoints', currentPoints + points);
   }
+
+  Future<void> minusRewardPoints(int points) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    int currentPoints = prefs.getInt('rewardPoints') ?? 0;
+    await prefs.setInt('rewardPoints', currentPoints - points);
+  }
 }

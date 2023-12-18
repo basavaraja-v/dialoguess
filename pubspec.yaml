@@ -30,6 +30,8 @@ dependencies:
   go_router: ^12.1.1
   flutter_inappwebview: ^5.8.0
   package_info_plus: ^4.2.0
+  games_services: ^4.0.0
+  flutter_signin_button: ^2.0.0
 
 flutter_native_splash:
   color: "263238"

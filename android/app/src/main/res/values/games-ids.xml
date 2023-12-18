@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--Google Play game services IDs. Save this file as res/values/games-ids.xml in your project.-->
+<resources>
+  <!--app_id-->
+  <string name="app_id" translatable="false">292418326021</string>
+  <!--package_name-->
+  <string name="package_name" translatable="false">com.heyidb.dialoguess</string>
+  <!--leaderboard Dialoguess Master-->
+  <string name="leaderboard_dialoguess_master" translatable="false">CgkIhZz2q8EIEAIQAQ</string>
+</resources>

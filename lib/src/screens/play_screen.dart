@@ -1,9 +1,11 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:games_services/games_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:velocity_x/velocity_x.dart';
 import '../models/dialogue.dart';
 import '../services/firebase_service.dart';
@@ -16,6 +18,8 @@ import 'package:animated_flip_counter/animated_flip_counter.dart';
 import '../ads/ads_controller.dart';
 import '../ads/banner_ad_widget.dart';
 import '../in_app_purchase/in_app_purchase.dart';
+import '../games_services/games_services.dart';
+import '../ads/rewarded_ad_manager.dart';
 
 class PlayScreen extends StatefulWidget {
   final VoidCallback onUpdate;
@@ -35,18 +39,37 @@ class _PlayScreenState extends State<PlayScreen> {
   bool _isImageLoaded = false;
   final ConfettiController _confettiController =
       ConfettiController(duration: const Duration(seconds: 3));
+  late GamesServicesController gamesServicesController;
+  late RewardedAdManager _rewardedAdManager;
+  List<bool> _struckOptions = [];
 
   @override
   void initState() {
     super.initState();
     _confettiController.play();
     _loadInitialData();
+    _loadStruckOptions();
+    gamesServicesController = GamesServicesController();
+    _rewardedAdManager = RewardedAdManager(
+      onReward: (int rewardAmount) {
+        // Handle the reward here, e.g., increment coins
+        print('User earned reward: $rewardAmount');
+      },
+    );
+    _rewardedAdManager.loadRewardedAd();
   }
 
   Future<void> _loadInitialData() async {
     _currentLevel = await _dialogueService.getCurrentLevel();
     _rewardPoints = await _dialogueService.getRewardPoints();
     _dialogueFuture = _fetchDialogue(_currentLevel);
+    // Reset struck-out options for the new level
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _struckOptions = List.filled(4, false); // Reset struck-out options
+      prefs.setStringList(
+          'struckOptions', _struckOptions.map((e) => e.toString()).toList());
+    });
     setState(() {});
   }
 
@@ -63,18 +86,19 @@ class _PlayScreenState extends State<PlayScreen> {
 
     if (isCorrect) {
       await _dialogueService.addRewardPoints(10);
-      int updatedPoints = await _dialogueService.getRewardPoints();
-      setState(() {
-        _rewardPoints = updatedPoints;
-      });
-      // AudioManager.playSFX('correctans.mp3');
       _showCongratulationsPopup();
       widget.onUpdate();
     } else {
-      // Implement failure animation or effect
+      await _dialogueService.minusRewardPoints(10);
       _showWrongAnswerPopup(dialogue);
       AudioManager.playSFX('wrongans.mp3');
     }
+
+    int updatedPoints = await _dialogueService.getRewardPoints();
+    setState(() {
+      _rewardPoints = updatedPoints;
+    });
+    await gamesServicesController.submitLeaderboardScore(_rewardPoints);
   }
 
   @override
@@ -245,14 +269,88 @@ class _PlayScreenState extends State<PlayScreen> {
     _currentLevel++;
     _dialogueFuture = _fetchDialogue(_currentLevel);
     _selectedOptionIndex = null; // Reset the selected option
+    // Reset struck-out options for the new level
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _struckOptions = List.filled(4, false); // Reset struck-out options
+      prefs.setStringList(
+          'struckOptions', _struckOptions.map((e) => e.toString()).toList());
+    });
     await _dialogueService.incrementLevel();
     _isImageLoaded = false;
     setState(() {});
   }
 
+  void _useHint() {
+    if (_rewardPoints < 10) {
+      _showRewardedAd();
+    }
+    _strikeOutWrongOption();
+  }
+
+  void _strikeOutWrongOption() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await _dialogueService.minusRewardPoints(10);
+    int updatedPoints = await _dialogueService.getRewardPoints();
+
+    setState(() {
+      _rewardPoints = updatedPoints;
+
+      // Fetch the future's data and then process the striking out logic
+      _dialogueFuture!.then((dialogue) {
+        // Ensure there are less than 3 options struck out
+        if (_struckOptions.where((element) => element).length < 3) {
+          List<int> wrongOptionsIndices = List.generate(4, (index) => index)
+              .where((index) => index != dialogue.rightOptionIndex)
+              .toList();
+
+          // Remove already struck options
+          wrongOptionsIndices.removeWhere((index) => _struckOptions[index]);
+
+          // If there are wrong options left to strike out
+          if (wrongOptionsIndices.isNotEmpty) {
+            // Randomly select one wrong option to strike out
+            int randomWrongOptionIndex = wrongOptionsIndices[
+                Random().nextInt(wrongOptionsIndices.length)];
+            _struckOptions[randomWrongOptionIndex] = true;
+
+            // Save the updated state in SharedPreferences
+            prefs.setStringList('struckOptions',
+                _struckOptions.map((e) => e.toString()).toList());
+          }
+        }
+      });
+    });
+  }
+
+  void _loadStruckOptions() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> storedStruckOptions =
+        prefs.getStringList('struckOptions') ?? [];
+
+    setState(() {
+      _struckOptions = storedStruckOptions.map((e) => e == 'true').toList();
+    });
+  }
+
+  void _showRewardedAd() async {
+    _rewardedAdManager.showRewardedAd();
+    await _dialogueService.addRewardPoints(10);
+    int updatedPoints = await _dialogueService.getRewardPoints();
+    setState(() {
+      _rewardPoints = updatedPoints;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.blueGrey[900], // Hint icon
+        onPressed: _useHint,
+        child: Image.asset("assets/images/hint.png"),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       appBar: AppBar(
         leading: IconButton(
           icon: Image.asset("assets/images/back.png"),
@@ -395,17 +493,15 @@ class _PlayScreenState extends State<PlayScreen> {
 
   Widget _buildOptionsGrid(Dialogue dialogue) {
     return LayoutBuilder(builder: (context, constraints) {
-      // Adjust the aspect ratio based on the screen width
       double width = constraints.maxWidth;
-      double childAspectRatio =
-          width > 600 ? 4 : 3; // Wider aspect ratio for larger screens
+      double childAspectRatio = width > 600 ? 4 : 3;
 
       return GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: childAspectRatio, // Adjusted aspect ratio
+          childAspectRatio: childAspectRatio,
           crossAxisSpacing: 0,
           mainAxisSpacing: 8,
         ),
@@ -414,44 +510,57 @@ class _PlayScreenState extends State<PlayScreen> {
           final option = dialogue.options[index];
           final isSelected = _selectedOptionIndex == index;
           final isCorrect = dialogue.rightOptionIndex == index;
+          final isStruck = _struckOptions[index];
 
           return Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20.0),
               color: isSelected
-                  ? isCorrect
-                      ? Vx.green500
-                      : Vx.red500
+                  ? (isCorrect ? Vx.green500 : Vx.red500)
                   : Colors.white,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.2),
                   spreadRadius: 0,
                   blurRadius: 10,
-                  offset: const Offset(0, 4), // changes position of shadow
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                foregroundColor: isSelected ? Colors.white : Colors.black,
-                backgroundColor: Colors.transparent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20.0),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: isSelected ? Colors.white : Colors.black,
+                    backgroundColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                    ),
+                    textStyle: GoogleFonts.bitter(fontSize: 18),
+                    elevation: 0,
+                    padding: const EdgeInsets.all(12),
+                  ),
+                  onPressed:
+                      isStruck ? null : () => _handleAnswer(index, dialogue),
+                  child: Text(
+                    option,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : Colors.black,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
                 ),
-                textStyle: GoogleFonts.bitter(fontSize: 18),
-                elevation:
-                    0, // Remove elevation since we're using custom shadow
-                padding: const EdgeInsets.all(12),
-              ),
-              onPressed: () => _handleAnswer(index, dialogue),
-              child: Text(
-                option,
-                style:
-                    TextStyle(color: isSelected ? Colors.white : Colors.black),
-              ),
+                if (isStruck)
+                  Container(
+                    height: 1,
+                    color: Colors.red,
+                    width: double.infinity,
+                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+              ],
             ),
-          ).px2(); // Add padding to create space around each grid item
+          ).px2();
         },
       );
     }).expand();

@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../controllers/audio_manager.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../games_services/games_services.dart';
+
 class SettingsScreen extends StatefulWidget {
   @override
   _SettingsScreenState createState() => _SettingsScreenState();
@@ -14,12 +16,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _musicEnabled = true;
   bool _sfxEnabled = true;
   String _appVersion = '';
+  late GamesServicesController gamesServicesController;
 
   @override
   void initState() {
     super.initState();
     _loadSettings();
     _initPackageInfo();
+    gamesServicesController = GamesServicesController();
   }
 
   Future<void> _initPackageInfo() async {
@@ -41,6 +45,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void showPrivacyPolicy() {
     Navigator.of(context)
         .push(MaterialPageRoute(builder: (context) => PrivacyPolicyScreen()));
+  }
+
+  void _showLeaderboard() {
+    gamesServicesController.showLeaderboard();
   }
 
   @override
@@ -103,6 +111,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         AudioManager.setSFXEnabled(_sfxEnabled);
                       });
                     },
+                  ),
+                ),
+                ListTile(
+                  title: Text('Leaderboard',
+                      style: GoogleFonts.bitter(
+                          fontSize: 18, color: Colors.white)),
+                  trailing: IconButton(
+                    icon: Image.asset('assets/images/leaderboard.png'),
+                    onPressed: _showLeaderboard,
                   ),
                 ),
                 ListTile(

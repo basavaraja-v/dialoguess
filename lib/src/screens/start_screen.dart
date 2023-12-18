@@ -6,6 +6,7 @@ import 'play_screen.dart';
 import 'settings_screen.dart';
 import '../widgets/custom_button.dart';
 import 'package:share_plus/share_plus.dart';
+import '../games_services/games_services.dart';
 
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});
@@ -18,6 +19,7 @@ class _StartScreenState extends State<StartScreen> {
   final DialogueService _dialogueService = DialogueService();
   late Future<int> _currentLevelFuture;
   late Future<int> _rewardPointsFuture;
+  late GamesServicesController gamesServicesController;
 
   @override
   void initState() {
@@ -25,6 +27,8 @@ class _StartScreenState extends State<StartScreen> {
     _currentLevelFuture = _dialogueService.getCurrentLevel();
     _rewardPointsFuture = _dialogueService.getRewardPoints();
     _loadInitialData();
+    gamesServicesController = GamesServicesController();
+    gamesServicesController.initialize();
   }
 
   @override
@@ -173,7 +177,13 @@ class _StartScreenState extends State<StartScreen> {
                       );
                     },
                   ),
-                  const SizedBox(height: 150),
+                  const SizedBox(height: 10),
+                  // SignInButton(
+                  //   Buttons.Google,
+                  //   text: "Sign in with Google",
+                  //   onPressed: signInToPlayGames,
+                  // ),
+                  const SizedBox(height: 140),
                 ],
               ),
             ),
