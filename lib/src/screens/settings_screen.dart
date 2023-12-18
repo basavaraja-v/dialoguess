@@ -77,62 +77,83 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Expanded(
             child: ListView(
               children: <Widget>[
-                ListTile(
-                  title: Text('Music',
-                      style: GoogleFonts.bitter(
-                          fontSize: 18, color: Colors.white)),
-                  trailing: IconButton(
-                    icon: Icon(
-                      _musicEnabled
-                          ? Icons.music_note_outlined
-                          : Icons.music_off_outlined,
-                      color: Colors.white,
-                    ),
-                    onPressed: () {
+                Card(
+                  color: Colors.blueGrey[900], // Card color
+                  child: ListTile(
+                    title: Text('Music',
+                        style: GoogleFonts.bitter(
+                            fontSize: 18, color: Colors.white)),
+                    onTap: () {
                       setState(() {
                         _musicEnabled = !_musicEnabled;
                         AudioManager.setMusicEnabled(_musicEnabled);
                       });
                     },
-                  ),
-                ),
-                ListTile(
-                  title: Text('Sound FX',
-                      style: GoogleFonts.bitter(
-                          fontSize: 18, color: Colors.white)),
-                  trailing: IconButton(
-                    icon: Icon(
-                      _sfxEnabled ? Icons.graphic_eq : Icons.volume_off,
-                      color: Colors.white,
+                    trailing: IconButton(
+                      icon: Icon(
+                        _musicEnabled
+                            ? Icons.music_note_outlined
+                            : Icons.music_off_outlined,
+                        color: Colors.white,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _musicEnabled = !_musicEnabled;
+                          AudioManager.setMusicEnabled(_musicEnabled);
+                        });
+                      },
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _sfxEnabled = !_sfxEnabled;
-                        AudioManager.setSFXEnabled(_sfxEnabled);
-                      });
-                    },
                   ),
                 ),
-                ListTile(
-                  title: Text('Leaderboard',
-                      style: GoogleFonts.bitter(
-                          fontSize: 18, color: Colors.white)),
-                  trailing: IconButton(
-                    icon: Image.asset('assets/images/leaderboard.png'),
-                    onPressed: _showLeaderboard,
-                  ),
-                ),
-                ListTile(
-                  // leading: Icon(Icons.privacy_tip, color: Colors.white),
-                  title: Text('Privacy Policy',
-                      style: GoogleFonts.bitter(
-                          fontSize: 18, color: Colors.white)),
-                  onTap: showPrivacyPolicy,
-                  trailing: IconButton(
-                    icon: Icon(Icons.privacy_tip, color: Colors.white),
-                    onPressed: () {},
-                  ),
-                )
+                Card(
+                    color: Colors.blueGrey[900], // Card color
+                    child: ListTile(
+                      title: Text('Sound FX',
+                          style: GoogleFonts.bitter(
+                              fontSize: 18, color: Colors.white)),
+                      onTap: () {
+                        setState(() {
+                          _sfxEnabled = !_sfxEnabled;
+                          AudioManager.setSFXEnabled(_sfxEnabled);
+                        });
+                      },
+                      trailing: IconButton(
+                          icon: Icon(
+                            _sfxEnabled ? Icons.graphic_eq : Icons.volume_off,
+                            color: Colors.white,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _sfxEnabled = !_sfxEnabled;
+                              AudioManager.setSFXEnabled(_sfxEnabled);
+                            });
+                          }),
+                    )),
+                Card(
+                    color: Colors.blueGrey[900], // Card color
+                    child: ListTile(
+                      title: Text('Leaderboard',
+                          style: GoogleFonts.bitter(
+                              fontSize: 18, color: Colors.white)),
+                      onTap: _showLeaderboard,
+                      trailing: IconButton(
+                        icon: Image.asset('assets/images/leaderboard.png'),
+                        onPressed: _showLeaderboard,
+                      ),
+                    )),
+                Card(
+                    color: Colors.blueGrey[900], // Card color
+                    child: ListTile(
+                      // leading: Icon(Icons.privacy_tip, color: Colors.white),
+                      title: Text('Privacy Policy',
+                          style: GoogleFonts.bitter(
+                              fontSize: 18, color: Colors.white)),
+                      onTap: showPrivacyPolicy,
+                      trailing: IconButton(
+                        icon: Icon(Icons.privacy_tip, color: Colors.white),
+                        onPressed: showPrivacyPolicy,
+                      ),
+                    ))
               ],
             ),
           ),

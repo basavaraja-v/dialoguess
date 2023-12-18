@@ -1,7 +1,7 @@
 name: dialoguess
 description: 'Welcome to "Dialoguess" - where every conversation is an adventure! Dive into a world where your words shape the story, and every choice matters. Perfect for players who love to explore vibrant worlds through engaging storytelling'
 publish_to: 'none'
-version: 0.1.0
+version: 0.2.1+2
 
 environment:
   sdk: '>=3.2.0-42.2.beta <4.0.0'

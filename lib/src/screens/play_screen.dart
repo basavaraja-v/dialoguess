@@ -98,6 +98,7 @@ class _PlayScreenState extends State<PlayScreen> {
     setState(() {
       _rewardPoints = updatedPoints;
     });
+
     await gamesServicesController.submitLeaderboardScore(_rewardPoints);
   }
 
@@ -262,6 +263,9 @@ class _PlayScreenState extends State<PlayScreen> {
         );
       },
     );
+    if (_rewardPoints < 10) {
+      _showRewardedAd();
+    }
   }
 
   void _loadNextLevel() async {
