@@ -89,7 +89,7 @@ class _PlayScreenState extends State<PlayScreen> {
       _showCongratulationsPopup();
       widget.onUpdate();
     } else {
-      await _dialogueService.minusRewardPoints(10);
+      // await _dialogueService.minusRewardPoints(10);
       _showWrongAnswerPopup(dialogue);
       AudioManager.playSFX('wrongans.mp3');
     }
@@ -263,9 +263,6 @@ class _PlayScreenState extends State<PlayScreen> {
         );
       },
     );
-    if (_rewardPoints < 10) {
-      _showRewardedAd();
-    }
   }
 
   void _loadNextLevel() async {
