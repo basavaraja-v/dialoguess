@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:games_services/games_services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -42,6 +43,9 @@ class _PlayScreenState extends State<PlayScreen> {
   late GamesServicesController gamesServicesController;
   late RewardedAdManager _rewardedAdManager;
   List<bool> _struckOptions = [];
+  late BannerAd _bannerAd;
+  bool _isBannerAdLoaded = false;
+  InterstitialAd? _interstitialAd;
 
   @override
   void initState() {
@@ -57,6 +61,23 @@ class _PlayScreenState extends State<PlayScreen> {
       },
     );
     _rewardedAdManager.loadRewardedAd();
+
+    _bannerAd = BannerAd(
+      adUnitId: 'ca-app-pub-2117177152504343/6246914381',
+      size: AdSize.banner,
+      listener: BannerAdListener(
+        onAdLoaded: (_) {
+          setState(() {
+            _isBannerAdLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+      request: const AdRequest(),
+    );
+    _bannerAd.load();
   }
 
   Future<void> _loadInitialData() async {
@@ -106,6 +127,7 @@ class _PlayScreenState extends State<PlayScreen> {
   void dispose() {
     widget.onUpdate(); // Also call onUpdate when PlayScreen is disposed
     _confettiController.dispose();
+    _bannerAd.dispose();
     super.dispose();
   }
 
@@ -471,6 +493,11 @@ class _PlayScreenState extends State<PlayScreen> {
         _isImageLoaded
             ? _buildOptionsGrid(dialogue)
             : _buildOptionShimmerEffect(),
+        SizedBox(
+          width: _bannerAd.size.width.toDouble(),
+          height: _bannerAd.size.height.toDouble(),
+          child: AdWidget(ad: _bannerAd),
+        ),
       ]),
     );
   }

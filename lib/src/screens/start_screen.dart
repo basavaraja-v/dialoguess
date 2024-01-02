@@ -57,6 +57,10 @@ class _StartScreenState extends State<StartScreen> {
     });
   }
 
+  void _showLeaderboard() {
+    gamesServicesController.showLeaderboard();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -139,29 +143,33 @@ class _StartScreenState extends State<StartScreen> {
                     },
                   ),
                   const SizedBox(height: 5),
-                  FutureBuilder<int>(
-                    future: _rewardPointsFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        return Container(
-                          padding: const EdgeInsets.all(
-                              8), // Add some padding inside the container
-                          decoration: BoxDecoration(
-                            color:
-                                Colors.green[800], // Setting background color
-                            borderRadius:
-                                BorderRadius.circular(10), // Rounded corners
-                          ),
-                          child: Text(
-                            'Highest Score: ${snapshot.data}',
-                            style: GoogleFonts.pressStart2p(
-                                fontSize: 16, color: Colors.white),
-                          ),
-                        );
-                      }
-                      return const SizedBox();
-                    },
-                  ),
+                  // FutureBuilder<int>(
+                  //   future: _rewardPointsFuture,
+                  //   builder: (context, snapshot) {
+                  //     if (snapshot.hasData) {
+                  //       return Container(
+                  //         padding: const EdgeInsets.all(
+                  //             8), // Add some padding inside the container
+                  //         decoration: BoxDecoration(
+                  //           color:
+                  //               Colors.green[800], // Setting background color
+                  //           borderRadius:
+                  //               BorderRadius.circular(10), // Rounded corners
+                  //         ),
+                  //         child: Text(
+                  //           'Highest Score: ${snapshot.data}',
+                  //           style: GoogleFonts.pressStart2p(
+                  //               fontSize: 16, color: Colors.white),
+                  //         ),
+                  //       );
+                  //     }
+                  //     return const SizedBox();
+                  //   },
+                  // ),
+                  CustomIconButton(
+                      icon: Icons.leaderboard,
+                      text: 'Leaderboard',
+                      onPressed: _showLeaderboard),
                   // const SizedBox(height: 420),
                   const SizedBox(height: 10),
                   CustomIconButton(
