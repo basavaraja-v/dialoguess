@@ -31,7 +31,8 @@ import 'preloaded_banner_ad.dart';
 /// namely the `anchored_adaptive_example.dart` file:
 /// https://github.com/googleads/googleads-mobile-flutter/blob/main/packages/google_mobile_ads/example/lib/anchored_adaptive_example.dart
 class BannerAdWidget extends StatefulWidget {
-  const BannerAdWidget({super.key});
+  final AdSize? adSize;
+  const BannerAdWidget({super.key, this.adSize});
 
   @override
   State<BannerAdWidget> createState() => _BannerAdWidgetState();
@@ -119,20 +120,23 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
     });
 
     AdSize size;
-
-    if (useAnchoredAdaptiveSize) {
-      final AnchoredAdaptiveBannerAdSize? adaptiveSize =
-          await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
-              MediaQuery.of(context).size.width.truncate());
-
-      if (adaptiveSize == null) {
-        _log.warning('Unable to get height of anchored banner.');
-        size = AdSize.banner;
-      } else {
-        size = adaptiveSize;
-      }
+    if (widget.adSize != null) {
+      size = widget.adSize!;
     } else {
-      size = AdSize.mediumRectangle;
+      if (useAnchoredAdaptiveSize) {
+        final AnchoredAdaptiveBannerAdSize? adaptiveSize =
+            await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+                MediaQuery.of(context).size.width.truncate());
+
+        if (adaptiveSize == null) {
+          _log.warning('Unable to get height of anchored banner.');
+          size = AdSize.banner;
+        } else {
+          size = adaptiveSize;
+        }
+      } else {
+        size = AdSize.mediumRectangle;
+      }
     }
 
     if (!mounted) return;

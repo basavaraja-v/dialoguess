@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:games_services/games_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:lottie/lottie.dart';
@@ -43,9 +42,6 @@ class _PlayScreenState extends State<PlayScreen> {
   late GamesServicesController gamesServicesController;
   late RewardedAdManager _rewardedAdManager;
   List<bool> _struckOptions = [];
-  late BannerAd _bannerAd;
-  bool _isBannerAdLoaded = false;
-  InterstitialAd? _interstitialAd;
 
   @override
   void initState() {
@@ -61,23 +57,6 @@ class _PlayScreenState extends State<PlayScreen> {
       },
     );
     _rewardedAdManager.loadRewardedAd();
-
-    _bannerAd = BannerAd(
-      adUnitId: 'ca-app-pub-2117177152504343/6246914381',
-      size: AdSize.banner,
-      listener: BannerAdListener(
-        onAdLoaded: (_) {
-          setState(() {
-            _isBannerAdLoaded = true;
-          });
-        },
-        onAdFailedToLoad: (ad, error) {
-          ad.dispose();
-        },
-      ),
-      request: const AdRequest(),
-    );
-    _bannerAd.load();
   }
 
   Future<void> _loadInitialData() async {
@@ -127,7 +106,6 @@ class _PlayScreenState extends State<PlayScreen> {
   void dispose() {
     widget.onUpdate(); // Also call onUpdate when PlayScreen is disposed
     _confettiController.dispose();
-    _bannerAd.dispose();
     super.dispose();
   }
 
@@ -367,94 +345,113 @@ class _PlayScreenState extends State<PlayScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final adsControllerAvailable = context.watch<AdsController?>() != null;
+    final adsRemoved =
+        context.watch<InAppPurchaseController?>()?.adRemoval.active ?? false;
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.blueGrey[900], // Hint icon
-        onPressed: _useHint,
-        child: Image.asset("assets/images/hint.png"),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Image.asset("assets/images/back.png"),
-          onPressed: () {
-            AudioManager.playSFX('click.mp3');
-            Navigator.of(context).pop();
-          },
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: Colors.blueGrey[900], // Hint icon
+          onPressed: _useHint,
+          child: Image.asset("assets/images/hint.png"),
         ),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
+        floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: Image.asset("assets/images/back.png"),
+            onPressed: () {
+              AudioManager.playSFX('click.mp3');
+              Navigator.of(context).pop();
+            },
+          ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              HStack([
+                Text(
+                  '$_currentLevel',
+                  style: GoogleFonts.bitter(
+                      fontSize: 20,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold),
+                ).centered(), // Center the text within the VStack
+              ])
+                  .box
+                  .roundedLg
+                  .shadowLg
+                  .make()
+                  .pOnly(right: 10, left: 10)
+                  .glassMorphic() // Styling the badge with a box
+            ],
+          ),
+          backgroundColor: Colors.blueGrey.shade900,
+          elevation: 0,
+          actions: <Widget>[
             HStack([
-              Text(
-                '$_currentLevel',
-                style: GoogleFonts.bitter(
+              Image.asset(
+                "assets/images/coin.png",
+                height: 24.0,
+                width: 24.0,
+              ),
+              const SizedBox(width: 8),
+              FittedBox(
+                // Wrap with FittedBox
+                fit: BoxFit.fitHeight, // Adjust the fit as needed
+                child: AnimatedFlipCounter(
+                  value: _rewardPoints,
+                  duration: const Duration(milliseconds: 2000),
+                  textStyle: GoogleFonts.bitter(
                     fontSize: 20,
                     color: Colors.white,
-                    fontWeight: FontWeight.bold),
-              ).centered(), // Center the text within the VStack
-            ])
-                .box
-                .roundedLg
-                .shadowLg
-                .make()
-                .pOnly(right: 10, left: 10)
-                .glassMorphic() // Styling the badge with a box
-          ],
-        ),
-        backgroundColor: Colors.blueGrey.shade900,
-        elevation: 0,
-        actions: <Widget>[
-          HStack([
-            Image.asset(
-              "assets/images/coin.png",
-              height: 24.0,
-              width: 24.0,
-            ),
-            const SizedBox(width: 8),
-            FittedBox(
-              // Wrap with FittedBox
-              fit: BoxFit.fitHeight, // Adjust the fit as needed
-              child: AnimatedFlipCounter(
-                value: _rewardPoints,
-                duration: const Duration(milliseconds: 2000),
-                textStyle: GoogleFonts.bitter(
-                  fontSize: 20,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-          ])
-              .pOnly(right: 10, left: 10)
-              .backgroundColor(Colors.blueGrey.shade900)
-              .glassMorphic(),
-        ],
-      ),
-      body: FutureBuilder<Dialogue>(
-        future: _dialogueFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done &&
-              snapshot.hasData) {
-            Dialogue dialogue = snapshot.data!;
-            return _buildGameScreen(dialogue);
-          } else if (snapshot.hasError) {
-            return Center(
-                child: const Text('Wow! you finished all the Levels')
-                    .text
-                    .textStyle(GoogleFonts.bitter(fontSize: 25))
-                    .green600
-                    .xl2
-                    .make());
-          } else {
-            return const Center(
-                child: CircularProgressIndicator(
-              color: Color.fromARGB(255, 44, 56, 61),
-            ));
-          }
-        },
-      ),
-    );
+            ])
+                .pOnly(right: 10, left: 10)
+                .backgroundColor(Colors.blueGrey.shade900)
+                .glassMorphic(),
+          ],
+        ),
+        body: Column(
+          children: <Widget>[
+            if (adsControllerAvailable && !adsRemoved) ...[
+              const SizedBox(
+                height: 1,
+              ),
+              const BannerAdWidget(
+                adSize: AdSize.banner,
+              ),
+              const SizedBox(
+                height: 1,
+              ),
+            ] else
+              const Text("Ad here").centered(),
+            Expanded(
+                child: FutureBuilder<Dialogue>(
+              future: _dialogueFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done &&
+                    snapshot.hasData) {
+                  Dialogue dialogue = snapshot.data!;
+                  return _buildGameScreen(dialogue);
+                } else if (snapshot.hasError) {
+                  return Center(
+                      child: const Text('Wow! you finished all the Levels')
+                          .text
+                          .textStyle(GoogleFonts.bitter(fontSize: 25))
+                          .green600
+                          .xl2
+                          .make());
+                } else {
+                  return const Center(
+                      child: CircularProgressIndicator(
+                    color: Color.fromARGB(255, 44, 56, 61),
+                  ));
+                }
+              },
+            ))
+          ],
+        ));
   }
 
   Widget _buildGameScreen(Dialogue dialogue) {
@@ -493,11 +490,6 @@ class _PlayScreenState extends State<PlayScreen> {
         _isImageLoaded
             ? _buildOptionsGrid(dialogue)
             : _buildOptionShimmerEffect(),
-        SizedBox(
-          width: _bannerAd.size.width.toDouble(),
-          height: _bannerAd.size.height.toDouble(),
-          child: AdWidget(ad: _bannerAd),
-        ),
       ]),
     );
   }
